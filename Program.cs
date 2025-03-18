@@ -6,12 +6,14 @@ using Microsoft.IdentityModel.Tokens;
 using RoleAuthentification.Services;
 using RoleAuthentification.Data;
 using RoleAuthentification.Interfaces;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddUserSecrets<Program>();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -21,15 +23,12 @@ builder.Services.AddScoped<UserManager<IdentityUser>>();
 builder.Services.AddScoped<RoleManager<IdentityRole>>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
-
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
-
     var key = builder.Configuration["Jwt:Key"];
     if (string.IsNullOrEmpty(key))
     {
@@ -44,20 +43,49 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+        RoleClaimType = ClaimTypes.Role
     };
 
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
         {
-            context.Token = context.HttpContext.Request.Cookies["AuthToken"];
+            var token = context.HttpContext.Request.Cookies["AuthToken"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                context.Token = token;
+            }
             return Task.CompletedTask;
         }
     };
+})
+.AddCookie()
+.AddGoogle(options =>
+{
+    var clientId = builder.Configuration["Authentication:Google:ClientId"];
+    if (string.IsNullOrEmpty(clientId))
+    {
+        throw new InvalidOperationException("ClientId is missing");
+    }
+
+    var clientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    if (string.IsNullOrEmpty(clientSecret))
+    {
+        throw new InvalidOperationException("ClientSecret is missing");
+    }
+
+    options.ClientId = clientId;
+    options.ClientSecret = clientSecret;
+    options.CallbackPath = "/signin-google"; 
 });
 
+builder.Services.AddAuthorization();
+
 builder.Services.AddControllersWithViews();
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
 var app = builder.Build();
 
