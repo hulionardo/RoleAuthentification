@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using RoleAuthentification.Services;
+using RoleAuthentification.Interfaces;
 
 namespace RoleAuthentification.Controllers
 {
@@ -8,9 +8,9 @@ namespace RoleAuthentification.Controllers
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly TokenService _tokenService;
+        private readonly ITokenService _tokenService;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, TokenService tokenService)
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, ITokenService tokenService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -24,13 +24,15 @@ namespace RoleAuthentification.Controllers
         public async Task<IActionResult> Login(string email, string password)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
+
+            if (user is null)
             {
                 ModelState.AddModelError("", "Invalid email or password.");
                 return View();
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, password, false);
+
             if (!result.Succeeded)
             {
                 ModelState.AddModelError("", "Invalid email or password.");
@@ -42,8 +44,8 @@ namespace RoleAuthentification.Controllers
 
             Response.Cookies.Append("AuthToken", token, new CookieOptions
             {
-                HttpOnly = true, 
-                Secure = true,   
+                HttpOnly = true,
+                Secure = true,
                 Expires = DateTime.UtcNow.AddHours(1)
             });
 

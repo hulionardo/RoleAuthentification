@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using RoleAuthentification.Services;
 using RoleAuthentification.Data;
+using RoleAuthentification.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,9 +17,9 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddScoped<UserManager<IdentityUser>>(); 
-builder.Services.AddScoped<RoleManager<IdentityRole>>(); 
-builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<UserManager<IdentityUser>>();
+builder.Services.AddScoped<RoleManager<IdentityRole>>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 
 
@@ -28,6 +29,13 @@ builder.Services.AddAuthentication(options =>
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
+
+    var key = builder.Configuration["Jwt:Key"];
+    if (string.IsNullOrEmpty(key))
+    {
+        throw new InvalidOperationException("Jwt:Key is missing");
+    }
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -36,7 +44,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
     };
 
     options.Events = new JwtBearerEvents

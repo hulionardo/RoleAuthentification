@@ -15,30 +15,15 @@ public class HomeController : Controller
     }
 
     [Authorize(Roles = "Admin")]
-    public IActionResult AdminAction()
-    {
-        return View();
-    }
+    public IActionResult AdminAction() => View();
 
     [Authorize(Roles = "User")]
-    public IActionResult UserAction()
-    {
-        return View();
-    }
+    public IActionResult UserAction() => View();
 
-    public IActionResult Index()
-    {
-        return View();
-    }
+    public IActionResult Index() => View();
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
+    public IActionResult Privacy() => View();
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-    }
+    public IActionResult Error() => View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
 }
