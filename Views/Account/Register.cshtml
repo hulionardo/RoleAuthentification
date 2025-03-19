@@ -1,12 +1,12 @@
-﻿@{
-    ViewData["Title"] = "Login";
+@{
+    ViewData["Title"] = "Register";
 }
 
-<h2>Login</h2>
+<h2>Sign Up</h2>
 
 <div asp-validation-summary="All" class="text-danger"></div>
 
-<form asp-action="Login" method="post">
+<form asp-action="Register" method="post">
     <div>
         <label for="email">Email</label>
         <input type="email" id="email" name="email" required />
@@ -15,7 +15,7 @@
         <label for="password">Password</label>
         <input type="password" id="password" name="password" required />
     </div>
-    <button type="submit">Login</button>
+    <button type="submit">Sign Up</button>
 </form>
 <hr />
 
@@ -24,6 +24,5 @@
 </div>
 
 <div>
-    <a asp-action="Register" class="btn btn-secondary">Sign Up</a>
-    <a asp-action="ForgotPassword" class="btn btn-link">Forgot Password?</a>
+    <a asp-action="Login" class="btn btn-secondary">Sign In</a>
 </div>

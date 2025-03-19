@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using RoleAuthentification.Services;
+using RoleAuthentification.Service;
 using RoleAuthentification.Data;
 using RoleAuthentification.Interfaces;
 using System.Security.Claims;
@@ -22,6 +22,7 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
 builder.Services.AddScoped<UserManager<IdentityUser>>();
 builder.Services.AddScoped<RoleManager<IdentityRole>>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IEmailSender, EmailSender>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -114,15 +115,6 @@ using (var scope = app.Services.CreateScope())
         adminUser = new IdentityUser { UserName = adminEmail, Email = adminEmail };
         await userManager.CreateAsync(adminUser, "Admin@123");
         await userManager.AddToRoleAsync(adminUser, "Admin");
-    }
-
-    var userEmail = "user@example.com";
-    var regularUser = await userManager.FindByEmailAsync(userEmail);
-    if (regularUser == null)
-    {
-        regularUser = new IdentityUser { UserName = userEmail, Email = userEmail };
-        await userManager.CreateAsync(regularUser, "User@123");
-        await userManager.AddToRoleAsync(regularUser, "User");
     }
 }
 
